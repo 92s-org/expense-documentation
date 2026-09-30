@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expense Tracker &#8212; 3-Tier AWS Demo</title>
+  <link rel="stylesheet" href="static/css/style.css" />
+</head>
+<body>
+
+<header>
+  <div class="header-icon">&#128176;</div>
+  <div class="header-text">
+    <h1>Expense Tracker</h1>
+    <p>Track and manage your daily expenses</p>
+  </div>
+  <div class="header-right">
+    <span class="tier-badge">3-Tier</span>
+    <span class="aws-badge">&#9729; AWS EC2</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="stat-card sc-total">
+      <div class="stat-icon">&#128181;</div>
+      <div class="stat-label">Total Spent</div>
+      <div class="stat-value" id="statTotal">&#8377;0</div>
+    </div>
+    <div class="stat-card sc-count">
+      <div class="stat-icon">&#128203;</div>
+      <div class="stat-label">Transactions</div>
+      <div class="stat-value" id="statCount">0</div>
+    </div>
+    <div class="stat-card sc-cat">
+      <div class="stat-icon">&#127991;</div>
+      <div class="stat-label">Top Category</div>
+      <div class="stat-value" id="statTopCat">&#8212;</div>
+    </div>
+  </div>
+
+  <!-- Add Expense -->
+  <div class="card">
+    <h2>
+      <span class="icon red">&#10133;</span>
+      <span id="formTitle">Add Expense</span>
+    </h2>
+    <div id="alert"></div>
+    <form id="addForm" novalidate>
+      <div class="form-row">
+        <div class="field">
+          <label for="amount">Amount (&#8377;)</label>
+          <input type="number" id="amount" placeholder="e.g. 500" min="1" max="1000000" />
+          <span class="field-error" id="amountErr"></span>
+        </div>
+        <div class="field">
+          <label for="category">Category</label>
+          <select id="category">
+            <option value="">-- Select category --</option>
+            <option>Food</option>
+            <option>Travel</option>
+            <option>Entertainment</option>
+            <option>Shopping</option>
+            <option>Health</option>
+            <option>Utilities</option>
+            <option>Other</option>
+          </select>
+          <span class="field-error" id="categoryErr"></span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field full">
+          <label for="description">Description</label>
+          <input type="text" id="description" placeholder="e.g. Lunch with team" maxlength="255" />
+          <span class="field-error" id="descriptionErr"></span>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn-ghost" id="resetBtn">Reset</button>
+        <button type="submit" class="btn-primary" id="submitBtn">Add Expense</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- All Expenses -->
+  <div class="card">
+    <div class="table-header">
+      <h2>
+        <span class="icon blue">&#128202;</span>
+        All Expenses
+      </h2>
+      <div class="table-actions">
+        <button class="btn-outline-blue" id="refreshBtn">&#8635; Refresh</button>
+        <button class="btn-danger" id="deleteAllBtn" style="font-size:0.82rem; padding:0.45rem 1rem;">&#128465; Delete All</button>
+      </div>
+    </div>
+
+    <div id="loading">
+      <div class="spinner"></div>
+      <p>Loading expenses&hellip;</p>
+    </div>
+
+    <div class="table-wrap" id="tableWrap" style="display:none;">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Amount (&#8377;)</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="transactionBody"></tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="empty-icon">&#128184;</div>
+      <p>No expenses recorded yet. Add your first one above!</p>
+    </div>
+  </div>
+
+  <!-- HTTP status code playground -->
+  <div class="card">
+    <h2>
+      <span class="icon green">&#128678;</span>
+      HTTP Status Code Playground
+    </h2>
+    <p class="card-sub">Each button sends a real request through LB &rarr; frontend nginx &rarr; backend &rarr; MySQL. Results land in the activity log below. Open DevTools &rarr; Network to see the raw headers.</p>
+    <div id="demoGroups"></div>
+    <div class="demo-hint" id="demoHint">Hover over a button to see what it does.</div>
+  </div>
+
+  <!-- HTTP activity log -->
+  <div class="card">
+    <div class="table-header">
+      <h2>
+        <span class="icon purple">&#128220;</span>
+        HTTP Activity Log
+      </h2>
+      <div class="table-actions">
+        <button class="btn-outline-blue" id="clearLogBtn">Clear</button>
+      </div>
+    </div>
+    <div class="legend">
+      <span class="status-pill s2">2XX success</span>
+      <span class="status-pill s3">3XX redirection</span>
+      <span class="status-pill s4">4XX client error</span>
+      <span class="status-pill s5">5XX server error</span>
+    </div>
+    <div class="table-wrap">
+      <table class="log-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Method</th>
+            <th>Path</th>
+            <th>Status</th>
+            <th>Took</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="logEmpty">
+      <p>No requests yet.</p>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Expense Tracker v5 &mdash; 3-Tier Architecture on AWS EC2 &nbsp;|&nbsp; Frontend &rarr; Backend (Node.js) &rarr; Database (MySQL)
+</footer>
+
+<script src="static/js/app.js"></script>
+</body>
+</html>
